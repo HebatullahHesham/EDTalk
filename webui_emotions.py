@@ -209,7 +209,7 @@ def main():
     demo.launch()
 
     # # Launch the interface
-    # iface.launch()
+    # iface.launch(share=True)
 
 if __name__ == "__main__":
     main()
