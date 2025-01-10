@@ -1,6 +1,9 @@
 import gradio as gr
 import os
+os.environ["XDG_RUNTIME_DIR"] = "/tmp"
 
+import os
+os.environ["AUDIODEV"] = "null"  # Suppress ALSA-related logs
 
 from code_for_webui.download_models_openxlab import download 
 
