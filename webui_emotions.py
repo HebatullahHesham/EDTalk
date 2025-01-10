@@ -74,6 +74,13 @@ def get_example():
     ]
     return case
 
+# Define the tips variable for usage
+tips = """
+### Usage tips of EDTalk
+1. If you're not satisfied with the results, check whether the image or the video is cropped.
+2. If you're not satisfied with the results, check whether "Use Face Super-Resolution" is selected.
+3. If you're not satisfied with the results, choose a pose video with similar head pose to source image.
+"""
 
 # Gradio interface definition
 def main():
