@@ -3,24 +3,6 @@ from typing import Optional
 import gradio as gr
 import os
 
-from pydantic_core import SchemaValidator, core_schema
-
-# Define your custom type
-class MyCustomType:
-    def __get_pydantic_core_schema__(self):
-        return core_schema.no_info_after_validator_function(
-            self.validate,
-            schema=core_schema.any_schema(),  # You can modify the schema as needed
-        )
-
-    @staticmethod
-    def validate(value):
-        # Custom validation logic
-        if isinstance(value, str) and len(value) < 5:
-            raise ValueError("Value must be a string with at least 5 characters")
-        return value
-
-# Set environment variables to suppress ALSA-related logs
 os.environ["XDG_RUNTIME_DIR"] = "/tmp"
 os.environ["AUDIODEV"] = "null"  # Suppress ALSA-related logs
 
@@ -38,7 +20,6 @@ class InputData(BaseModel):
     need_crop_pose_video: bool
     exp_type: str
     face_sr: bool
-    custom_field: MyCustomType  # Use the custom type field here
 
     class Config:
         arbitrary_types_allowed = True
@@ -156,4 +137,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
