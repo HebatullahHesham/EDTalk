@@ -2,11 +2,12 @@ from pydantic import BaseModel
 from typing import Optional
 import gradio as gr
 import os
+
 os.environ["XDG_RUNTIME_DIR"] = "/tmp"
 os.environ["AUDIODEV"] = "null"  # Suppress ALSA-related logs
 
 # Your other imports
-from code_for_webui.download_models_openxlab import download 
+from code_for_webui.download_models_openxlab import download
 from code_for_webui.demo_EDTalk_A_using_predefined_exp_weights import Demo as Demo_EDTalk_A_using_predefined_exp_weights
 from code_for_webui.demo_lip_pose import Demo as Demo_lip_pose
 
@@ -23,13 +24,11 @@ class InputData(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-
 # Initialize demo instances
 demo_lip_pose = Demo_lip_pose()
 demo_EDTalk_A_using_predefined_exp_weights = Demo_EDTalk_A_using_predefined_exp_weights()
 
 def run_inference(input_data: InputData):
-    # Now use the input_data object to access input parameters
     source_path = input_data.source_image if input_data.source_image else ""
     audio_driving_path = input_data.audio_file if input_data.audio_file else ""
     pose_driving_path = input_data.pose_video if input_data.pose_video else "test_data/pose_source1.mp4"
@@ -50,7 +49,7 @@ def run_inference(input_data: InputData):
             )
             save_path = demo_lip_pose.run()
 
-        save_512_path = save_path.replace('.mp4','_512.mp4')
+        save_512_path = save_path.replace('.mp4', '_512.mp4')
 
         if not os.path.exists(save_path):
             return None, gr.Markdown("Error: Video generation failed. Please check your inputs and try again.")
@@ -59,13 +58,11 @@ def run_inference(input_data: InputData):
         elif os.path.exists(save_512_path):
             return gr.Video(value=save_path), gr.Video(value=save_512_path), gr.Markdown(tips)
         else:
-            return None, None, gr.Markdown("Video generated failed, please retry it.")
+            return None, None, gr.Markdown("Video generation failed. Please retry.")
     except Exception as e:
         print(str(e))
-        return None, None, gr.Markdown("Video generated failed, please retry it.")
+        return None, None, gr.Markdown("Video generation failed. Please retry.")
 
-
-# Function to get examples for Gradio
 def get_example():
     case = [
         ['res/results_by_facesr/demo_EDTalk_A.png', False, "res/results_by_facesr/demo_EDTalk_A.wav", "test_data/pose_source1.mp4", False, "I don't wanna generate emotional expression", True],
@@ -74,39 +71,48 @@ def get_example():
     ]
     return case
 
-# Define the tips variable for usage
 tips = """
-### Usage tips of EDTalk
-1. If you're not satisfied with the results, check whether the image or the video is cropped.
-2. If you're not satisfied with the results, check whether "Use Face Super-Resolution" is selected.
-3. If you're not satisfied with the results, choose a pose video with similar head pose to source image.
+### Usage Tips
+1. Ensure proper cropping of the image or video if the output is unsatisfactory.
+2. Enable "Use Face Super-Resolution" for higher quality outputs.
+3. Match head pose of the pose video with the source image for better results.
 """
 
-# Gradio interface definition
+def remove_tips():
+    return ""
+
+article = """
+### Learn More
+Visit the [GitHub repository](https://github.com/tanshuai0219/EDTalk) for more details.
+"""
+
 def main():
     title = "<h1 align='center'>EDTalk: Efficient Disentanglement for Emotional Talking Head Synthesis</h1>"
     description = """<b>Official 🤗 Gradio demo</b> for <a href='https://github.com/tanshuai0219/EDTalk' target='_blank'><b>EDTalk: Efficient Disentanglement for Emotional Talking Head Synthesis</b></a>.<br>..."""
-    
-    # Gradio interface setup (no changes here)
+
     with gr.Blocks() as demo:
         gr.Markdown(title)
         gr.Markdown(description)
 
         with gr.Row():
             with gr.Column():
-                source_file = gr.Image(type="filepath",label="Select Source Image.")
+                source_file = gr.Image(type="filepath", label="Select Source Image.")
                 crop_image = gr.Checkbox(label="Crop the Source Image")
                 driving_audio = gr.Audio(type="filepath", label="Select Audio File")
                 pose_video = gr.Video(label="Select Pose Video.")
                 crop_video = gr.Checkbox(label="Crop the Pose Video")
-                exp_type = gr.Dropdown(choices=["I don't wanna generate emotional expression","angry", "contempt", "disgusted", "fear", "happy", "sad", "surprised"], label="Select Expression Type", value="I don't wanna generate emotional expression")
+                exp_type = gr.Dropdown(
+                    choices=["I don't wanna generate emotional expression", "angry", "contempt", "disgusted", "fear", "happy", "sad", "surprised"],
+                    label="Select Expression Type", 
+                    value="I don't wanna generate emotional expression"
+                )
                 face_sr = gr.Checkbox(label="Use Face Super-Resolution")
                 submit = gr.Button("Submit", variant="primary")
 
             with gr.Column():
                 output_256 = gr.Video(label="Generated Video (256)")
                 output_512 = gr.Video(label="Generated Video (512)")
-                output_log = gr.Markdown(label="Usage tips of EDTalk", value=tips, visible=False)
+                output_log = gr.Markdown(label="Usage Tips", value=tips, visible=False)
 
             submit.click(
                 fn=remove_tips,
@@ -125,10 +131,9 @@ def main():
             outputs=[output_256, output_512, output_log],
             cache_examples=True,
         )
-        
+
         gr.Markdown(article)
     demo.launch()
-
 
 if __name__ == "__main__":
     main()
